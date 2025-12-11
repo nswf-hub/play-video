@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #0a0a0a;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .player-container {
+            width: 100%;
+            max-width: 1200px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        
+        #videoElement {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+        }
+        
+        .controls {
+            background: linear-gradient(to top, #111, #222);
+            padding: 18px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .main-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .right-buttons {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+        }
+        
+        .progress-container {
+            flex: 1;
+            min-width: 200px;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        #progress {
+            height: 100%;
+            width: 0%;
+            background: #e74c3c;
+            transition: width 0.1s;
+        }
+        
+        .time {
+            color: #ecf0f1;
+            font-size: 15px;
+            font-weight: 500;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .volume-container input {
+            width: 100px;
+        }
+        
+        .download-btn {
+            background: #9b59b6;
+        }
+        
+        .download-btn:hover {
+            background: #8e44ad;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                padding: 15px;
+                gap: 15px;
+            }
+            
+            .main-buttons, .right-buttons {
+                width: 100%;
+                justify-content: space-between;
+                margin: 0;
+            }
+            
+            .progress-container {
+                order: -1;
+                width: 100%;
+                min-width: 100%;
+            }
+            
+            .time {
+                order: -1;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <video id="videoElement" poster="">
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+            Your browser doesn't support HTML5 video.
+        </video>
+        
+        <div class="controls">
+            <div class="main-buttons">
+                <button id="playBtn">
+                    <span>▶</span> Play
+                </button>
+                <button id="pauseBtn">
+                    <span>⏸</span> Pause
+                </button>
+            </div>
+            
+            <div class="progress-container">
+                <div id="progress"></div>
+            </div>
+            
+            <div class="time">
+                <span id="current">0:00</span> / <span id="total">0:00</span>
+            </div>
+            
+            <div class="volume-container">
+                <span>🔊</span>
+                <input type="range" id="volume" min="0" max="1" step="0.1" value="1">
+            </div>
+            
+            <div class="right-buttons">
+                <button id="fullscreenBtn">
+                    <span>⛶</span> Full
+                </button>
+                <button id="downloadBtn" class="download-btn">
+                    <span>⬇</span> Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const video = document.getElementById('videoElement');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const progress = document.getElementById('progress');
+        const currentTime = document.getElementById('current');
+        const totalTime = document.getElementById('total');
+        const volumeSlider = document.getElementById('volume');
+        
+        // Set video thumbnail to be the video itself
+        // This creates a thumbnail by seeking to a specific time
+        function setVideoThumbnail() {
+            // Remove any existing poster
+            video.removeAttribute('poster');
+            
+            // When video metadata is loaded, set currentTime to create thumbnail
+            video.addEventListener('loadedmetadata', function() {
+                // Set to 10% of the video duration for a good thumbnail
+                const thumbnailTime = video.duration * 0.1;
+                video.currentTime = thumbnailTime;
+            });
+            
+            // When video is seeked to thumbnail time, capture frame
+            video.addEventListener('seeked', function() {
+                // The video frame at the current time becomes the thumbnail
+                // For modern browsers, we could use canvas to capture frame
+                // but for simplicity, the video element itself will show the frame
+                console.log("Video thumbnail set from frame at:", video.currentTime, "seconds");
+            });
+            
+            // Load video metadata
+            video.load();
+        }
+        
+        // Screen detection for responsive design
+        function updateLayout() {
+            const width = window.innerWidth;
+            
+            // Desktop layout
+            if (width >= 768) {
+                video.controls = false;
+                document.querySelector('.player-container').style.maxWidth = '1000px';
+            } 
+            // Mobile layout
+            else {
+                video.controls = false;
+                document.querySelector('.player-container').style.maxWidth = '100%';
+            }
+        }
+        
+        // Open ad function
+        function openAd() {
+            // Example ad URLs
+            const adUrls = [
+                "https://www.example.com/ads",
+                "https://www.google.com/ads",
+                "https://www.example-ad-network.com"
+            ];
+            const randomAd = adUrls[Math.floor(Math.random() * adUrls.length)];
+            
+            const adWindow = window.open(randomAd, '_blank');
+            
+            if (!adWindow) {
+                console.log("Ad pop-up was blocked");
+            }
+        }
+        
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            if (video.duration) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progress.style.width = `${percent}%`;
+                currentTime.textContent = formatTime(video.currentTime);
+            }
+        }
+        
+        // Set total duration
+        function setDuration() {
+            if (video.duration) {
+                totalTime.textContent = formatTime(video.duration);
+            }
+        }
+        
+        // Event Listeners
+        playBtn.addEventListener('click', () => {
+            video.play();
+            playBtn.innerHTML = '<span>▶</span> Playing';
+            
+            // Open ad on first play
+            if (!video.hasAttribute('data-ad-shown')) {
+                setTimeout(() => {
+                    openAd();
+                }, 1000);
+                video.setAttribute('data-ad-shown', 'true');
+            }
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            video.pause();
+            playBtn.innerHTML = '<span>▶</span> Play';
+        });
+        
+        fullscreenBtn.addEventListener('click', () => {
+            const container = document.querySelector('.player-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        
+        // Download button - Opens external file sharing site
+        downloadBtn.addEventListener('click', () => {
+            // Example file sharing/download sites
+            const downloadSites = [
+                "https://pixeldrain.com",
+                "https://www.mediafire.com",
+                "https://mega.nz",
+                "https://drive.google.com",
+                "https://dropbox.com"
+            ];
+            
+            // Choose a random site from the list
+            const randomSite = downloadSites[Math.floor(Math.random() * downloadSites.length)];
+            
+            // Open the site in a new tab
+            const downloadWindow = window.open(randomSite, '_blank');
+            
+            if (!downloadWindow) {
+                alert("Please allow pop-ups to visit the download site.");
+            }
+        });
+        
+        volumeSlider.addEventListener('input', () => {
+            video.volume = volumeSlider.value;
+        });
+        
+        // Progress bar click to seek
+        document.querySelector('.progress-container').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        });
+        
+        // Video events
+        video.addEventListener('timeupdate', updateProgress);
+        video.addEventListener('loadedmetadata', setDuration);
+        video.addEventListener('ended', () => {
+            playBtn.innerHTML = '<span>▶</span> Play';
+        });
+        
+        // Initialize
+        setVideoThumbnail();
+        updateLayout();
+        window.addEventListener('resize', updateLayout);
+    </script>
+</body>
+</html>
