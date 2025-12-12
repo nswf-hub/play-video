@@ -25,12 +25,12 @@
         
         /* Main player container */
         .player-container {
-            width: 90vw;
-            height: 67.5vw; /* 90vw * 0.75 (4:3 aspect ratio) */
+            width: 95vw;
+            height: 71.25vw; /* 95vw * 0.75 (4:3 aspect ratio) */
             max-width: 800px;
             max-height: 600px;
-            min-width: 300px;
-            min-height: 225px;
+            min-width: 280px;
+            min-height: 210px;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
@@ -71,25 +71,16 @@
             background: linear-gradient(to top, #111, #222);
             display: flex;
             flex-direction: column;
-            padding: 10px 15px;
-            gap: 10px;
+            padding: 8px 10px;
+            gap: 8px;
         }
         
-        /* Top row - progress and play button */
-        .top-controls {
+        /* Progress row */
+        .progress-row {
             display: flex;
             align-items: center;
-            gap: 10px;
-            height: 35px;
-            flex-wrap: nowrap;
-        }
-        
-        /* Bottom row - volume and other buttons */
-        .bottom-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            height: 35px;
+            gap: 8px;
+            height: 25px;
             flex-wrap: nowrap;
         }
         
@@ -98,17 +89,18 @@
             background: #e74c3c;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 14px;
+            gap: 4px;
+            font-size: 12px;
             white-space: nowrap;
-            min-width: 70px;
+            min-width: 60px;
             flex-shrink: 0;
+            height: 32px;
         }
         
         /* Progress bar container */
@@ -119,7 +111,7 @@
             border-radius: 3px;
             overflow: hidden;
             cursor: pointer;
-            min-width: 50px;
+            min-width: 40px;
             flex-shrink: 1;
         }
         
@@ -133,67 +125,92 @@
         /* Time display */
         .time {
             color: #ecf0f1;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
-            min-width: 85px;
+            min-width: 70px;
             text-align: center;
             flex-shrink: 0;
         }
         
-        /* Volume container - ALWAYS VISIBLE */
-        .volume-container {
+        /* Control buttons row */
+        .buttons-row {
             display: flex;
             align-items: center;
             gap: 8px;
-            min-width: 130px;
+            height: 35px;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        /* Volume container */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 90px;
             flex-shrink: 0;
+            flex: 1;
         }
         
         .volume-container span {
             color: white;
-            font-size: 16px;
-        }
-        
-        .volume-container input {
-            width: 80px;
-            flex-shrink: 1;
-        }
-        
-        /* Right buttons group */
-        .right-buttons {
-            display: flex;
-            gap: 8px;
-            margin-left: auto;
+            font-size: 14px;
             flex-shrink: 0;
         }
         
-        /* General button styles */
-        button {
+        .volume-container input {
+            width: 70px;
+            flex-shrink: 1;
+        }
+        
+        /* Right buttons - ALWAYS VISIBLE */
+        .control-buttons {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        
+        /* All buttons same size */
+        .control-btn {
             background: #3498db;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 14px;
+            gap: 4px;
+            font-size: 12px;
             white-space: nowrap;
+            min-width: 60px;
+            height: 32px;
+            justify-content: center;
             flex-shrink: 0;
         }
         
-        button:hover {
+        .control-btn:hover {
             background: #2980b9;
         }
         
         .download-btn {
             background: #9b59b6;
+            min-width: 80px;
         }
         
         .download-btn:hover {
             background: #8e44ad;
+        }
+        
+        .fullscreen-btn {
+            background: #2ecc71;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #27ae60;
         }
         
         /* Protection message */
@@ -204,52 +221,12 @@
             width: 100%;
             text-align: center;
             color: rgba(255, 255, 255, 0.3);
-            font-size: 10px;
+            font-size: 9px;
             z-index: 5;
         }
         
         /* Mobile-specific adjustments */
-        @media (max-width: 700px) {
-            .player-container {
-                width: 95vw;
-                height: 71.25vw; /* 95vw * 0.75 */
-            }
-            
-            .controls {
-                padding: 8px 10px;
-                gap: 8px;
-            }
-            
-            .top-controls, .bottom-controls {
-                height: 32px;
-            }
-            
-            #playPauseBtn {
-                min-width: 65px;
-                padding: 6px 10px;
-                font-size: 13px;
-            }
-            
-            .time {
-                font-size: 13px;
-                min-width: 80px;
-            }
-            
-            .volume-container {
-                min-width: 110px;
-            }
-            
-            .volume-container input {
-                width: 70px;
-            }
-            
-            button {
-                padding: 6px 10px;
-                font-size: 13px;
-            }
-        }
-        
-        @media (max-width: 500px) {
+        @media (max-width: 600px) {
             .player-container {
                 width: 98vw;
                 height: 73.5vw; /* 98vw * 0.75 */
@@ -260,72 +237,113 @@
                 gap: 6px;
             }
             
-            .top-controls, .bottom-controls {
-                height: 30px;
-                gap: 6px;
-            }
-            
             #playPauseBtn {
-                min-width: 60px;
+                min-width: 55px;
                 padding: 5px 8px;
-                font-size: 12px;
+                font-size: 11px;
+                height: 30px;
             }
             
             .time {
-                font-size: 12px;
-                min-width: 75px;
+                font-size: 11px;
+                min-width: 65px;
             }
             
             .volume-container {
-                min-width: 100px;
-                gap: 5px;
+                min-width: 80px;
             }
             
             .volume-container input {
                 width: 60px;
             }
             
-            button {
+            .control-btn {
+                min-width: 55px;
                 padding: 5px 8px;
-                font-size: 12px;
+                font-size: 11px;
+                height: 30px;
             }
             
-            .right-buttons {
-                gap: 5px;
+            .download-btn {
+                min-width: 70px;
             }
         }
         
         @media (max-width: 400px) {
-            .top-controls {
-                flex-wrap: wrap;
-                height: auto;
-                min-height: 30px;
+            .player-container {
+                min-width: 260px;
+                min-height: 195px;
             }
             
-            .progress-container {
-                order: -1;
-                width: 100%;
-                margin-bottom: 5px;
+            .controls {
+                padding: 5px 6px;
+                gap: 5px;
             }
             
-            .bottom-controls {
-                flex-wrap: wrap;
-                height: auto;
-                min-height: 30px;
+            .progress-row {
+                height: 22px;
+            }
+            
+            .buttons-row {
+                height: 30px;
+            }
+            
+            #playPauseBtn {
+                min-width: 50px;
+                padding: 4px 6px;
+                font-size: 10px;
+                height: 28px;
+            }
+            
+            .time {
+                font-size: 10px;
+                min-width: 60px;
             }
             
             .volume-container {
-                min-width: 90px;
+                min-width: 70px;
             }
             
             .volume-container input {
                 width: 50px;
             }
             
-            .right-buttons {
-                margin-left: 0;
+            .control-btn {
+                min-width: 50px;
+                padding: 4px 6px;
+                font-size: 10px;
+                height: 28px;
+            }
+            
+            .download-btn {
+                min-width: 65px;
+            }
+        }
+        
+        /* Very small screens - stack volume and buttons */
+        @media (max-width: 350px) {
+            .buttons-row {
+                flex-wrap: wrap;
+                height: auto;
+                gap: 5px;
+            }
+            
+            .volume-container {
+                width: 100%;
+                min-width: 100%;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+            
+            .volume-container input {
+                flex: 1;
+                max-width: 120px;
+            }
+            
+            .control-buttons {
                 width: 100%;
                 justify-content: space-between;
+                margin-left: 0;
             }
         }
     </style>
@@ -334,7 +352,7 @@
     <div class="player-container">
         <div class="video-wrapper">
             <video id="videoElement" preload="metadata">
-                <source src="https://cdn.videy.co/Z7djbi131.mp4" type="video/mp4">
+                <source src="https://files.catbox.moe/eb9fvz.mp4" type="video/mp4">
                 Your browser doesn't support HTML5 video.
             </video>
             
@@ -344,7 +362,7 @@
         
         <div class="controls">
             <!-- Top row: Play button, progress bar, and time -->
-            <div class="top-controls">
+            <div class="progress-row">
                 <button id="playPauseBtn">
                     <span>▶</span> Play
                 </button>
@@ -358,18 +376,18 @@
                 </div>
             </div>
             
-            <!-- Bottom row: Volume and other buttons -->
-            <div class="bottom-controls">
+            <!-- Bottom row: Volume and control buttons -->
+            <div class="buttons-row">
                 <div class="volume-container">
                     <span>🔊</span>
                     <input type="range" id="volume" min="0" max="1" step="0.1" value="1">
                 </div>
                 
-                <div class="right-buttons">
-                    <button id="fullscreenBtn">
+                <div class="control-buttons">
+                    <button id="fullscreenBtn" class="control-btn fullscreen-btn">
                         <span>⛶</span> Full
                     </button>
-                    <button id="downloadBtn" class="download-btn">
+                    <button id="downloadBtn" class="control-btn download-btn">
                         <span>⬇</span> Download
                     </button>
                 </div>
@@ -461,7 +479,7 @@
         });
         
         downloadBtn.addEventListener('click', () => {
-            const downloadUrl = "https://safefile.cc/Container/90AUNNZ1AA.html";
+            const downloadUrl = "https://gofile.io/d/aX4cuM";
             const downloadWindow = window.open(downloadUrl, '_blank');
             if (!downloadWindow) alert("Please allow pop-ups.");
         });
@@ -485,29 +503,37 @@
             playPauseBtn.innerHTML = '<span>▶</span> Play';
         });
         
-        // Ensure volume bar is always visible
-        function ensureVolumeBarVisible() {
-            const volumeContainer = document.querySelector('.volume-container');
-            const controlsWidth = document.querySelector('.controls').offsetWidth;
+        // Ensure all buttons are visible
+        function ensureButtonsVisible() {
+            const container = document.querySelector('.player-container');
+            const controls = document.querySelector('.controls');
+            const buttonsRow = document.querySelector('.buttons-row');
             
-            // If screen is very small, make volume slider smaller but still visible
+            // Calculate available space
+            const controlsWidth = controls.offsetWidth;
+            const buttonsRowWidth = buttonsRow.offsetWidth;
+            
+            console.log(`Controls width: ${controlsWidth}px, Buttons row width: ${buttonsRowWidth}px`);
+            
+            // If buttons are getting squeezed, adjust layout
             if (controlsWidth < 350) {
-                volumeContainer.style.minWidth = '80px';
-                volumeSlider.style.width = '40px';
-            } else if (controlsWidth < 450) {
-                volumeContainer.style.minWidth = '90px';
-                volumeSlider.style.width = '50px';
-            } else {
-                volumeContainer.style.minWidth = '110px';
-                volumeSlider.style.width = '70px';
+                // For very small screens, use more compact layout
+                document.querySelector('.volume-container').style.minWidth = '70px';
+                document.querySelector('.volume-container input').style.width = '50px';
+                document.querySelectorAll('.control-btn').forEach(btn => {
+                    btn.style.minWidth = '50px';
+                    btn.style.padding = '4px 6px';
+                    btn.style.fontSize = '10px';
+                });
+                document.querySelector('.download-btn').style.minWidth = '60px';
             }
         }
         
         // Initialize
-        ensureVolumeBarVisible();
-        window.addEventListener('resize', ensureVolumeBarVisible);
+        setTimeout(ensureButtonsVisible, 100);
+        window.addEventListener('resize', ensureButtonsVisible);
         
-        console.log("Video player loaded - Volume bar always visible");
+        console.log("Video player loaded - All buttons visible on mobile");
     </script>
 </body>
 </html>
