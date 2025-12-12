@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Player</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #0a0a0a;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        
+        /* Main player container */
+        .player-container {
+            width: 95vw;
+            height: 71.25vw; /* 95vw * 0.75 (4:3 aspect ratio) */
+            max-width: 800px;
+            max-height: 600px;
+            min-width: 280px;
+            min-height: 210px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        
+        /* Video area */
+        .video-wrapper {
+            width: 100%;
+            height: 75%; /* 75% of container */
+            background: #000;
+            position: relative;
+        }
+        
+        /* Video element */
+        #videoElement {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: black;
+        }
+        
+        /* Protection overlay */
+        .video-protection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            cursor: default;
+        }
+        
+        /* Controls area */
+        .controls {
+            width: 100%;
+            height: 25%; /* 25% of container */
+            background: linear-gradient(to top, #111, #222);
+            display: flex;
+            flex-direction: column;
+            padding: 8px 10px;
+            gap: 8px;
+        }
+        
+        /* Progress row */
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 25px;
+            flex-wrap: nowrap;
+        }
+        
+        /* Play button */
+        #playPauseBtn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            min-width: 60px;
+            flex-shrink: 0;
+            height: 32px;
+        }
+        
+        /* Progress bar container */
+        .progress-container {
+            flex: 1;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+            min-width: 40px;
+            flex-shrink: 1;
+        }
+        
+        #progress {
+            height: 100%;
+            width: 0%;
+            background: #e74c3c;
+            transition: width 0.1s;
+        }
+        
+        /* Time display */
+        .time {
+            color: #ecf0f1;
+            font-size: 12px;
+            font-weight: 500;
+            min-width: 70px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        /* Control buttons row */
+        .buttons-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 35px;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        /* Volume container */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 90px;
+            flex-shrink: 0;
+            flex: 1;
+        }
+        
+        .volume-container span {
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .volume-container input {
+            width: 70px;
+            flex-shrink: 1;
+        }
+        
+        /* Right buttons - ALWAYS VISIBLE */
+        .control-buttons {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        
+        /* All buttons same size */
+        .control-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            min-width: 60px;
+            height: 32px;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .control-btn:hover {
+            background: #2980b9;
+        }
+        
+        .download-btn {
+            background: #9b59b6;
+            min-width: 80px;
+        }
+        
+        .download-btn:hover {
+            background: #8e44ad;
+        }
+        
+        .fullscreen-btn {
+            background: #2ecc71;
+        }
+        
+        .fullscreen-btn:hover {
+            background: #27ae60;
+        }
+        
+        /* Protection message */
+        .protection-message {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 9px;
+            z-index: 5;
+        }
+        
+        /* Mobile-specific adjustments */
+        @media (max-width: 600px) {
+            .player-container {
+                width: 98vw;
+                height: 73.5vw; /* 98vw * 0.75 */
+            }
+            
+            .controls {
+                padding: 6px 8px;
+                gap: 6px;
+            }
+            
+            #playPauseBtn {
+                min-width: 55px;
+                padding: 5px 8px;
+                font-size: 11px;
+                height: 30px;
+            }
+            
+            .time {
+                font-size: 11px;
+                min-width: 65px;
+            }
+            
+            .volume-container {
+                min-width: 80px;
+            }
+            
+            .volume-container input {
+                width: 60px;
+            }
+            
+            .control-btn {
+                min-width: 55px;
+                padding: 5px 8px;
+                font-size: 11px;
+                height: 30px;
+            }
+            
+            .download-btn {
+                min-width: 70px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .player-container {
+                min-width: 260px;
+                min-height: 195px;
+            }
+            
+            .controls {
+                padding: 5px 6px;
+                gap: 5px;
+            }
+            
+            .progress-row {
+                height: 22px;
+            }
+            
+            .buttons-row {
+                height: 30px;
+            }
+            
+            #playPauseBtn {
+                min-width: 50px;
+                padding: 4px 6px;
+                font-size: 10px;
+                height: 28px;
+            }
+            
+            .time {
+                font-size: 10px;
+                min-width: 60px;
+            }
+            
+            .volume-container {
+                min-width: 70px;
+            }
+            
+            .volume-container input {
+                width: 50px;
+            }
+            
+            .control-btn {
+                min-width: 50px;
+                padding: 4px 6px;
+                font-size: 10px;
+                height: 28px;
+            }
+            
+            .download-btn {
+                min-width: 65px;
+            }
+        }
+        
+        /* Very small screens - stack volume and buttons */
+        @media (max-width: 350px) {
+            .buttons-row {
+                flex-wrap: wrap;
+                height: auto;
+                gap: 5px;
+            }
+            
+            .volume-container {
+                width: 100%;
+                min-width: 100%;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+            
+            .volume-container input {
+                flex: 1;
+                max-width: 120px;
+            }
+            
+            .control-buttons {
+                width: 100%;
+                justify-content: space-between;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="video-wrapper">
+            <video id="videoElement" preload="metadata">
+                <source src="https://cdn.videy.co/2uiyEMcy1.mp4" type="video/mp4">
+                Your browser doesn't support HTML5 video.
+            </video>
+            
+            <div class="video-protection" id="videoProtection"></div>
+            <div class="protection-message">Right-click disabled</div>
+        </div>
+        
+        <div class="controls">
+            <!-- Top row: Play button, progress bar, and time -->
+            <div class="progress-row">
+                <button id="playPauseBtn">
+                    <span>▶</span> Play
+                </button>
+                
+                <div class="progress-container">
+                    <div id="progress"></div>
+                </div>
+                
+                <div class="time">
+                    <span id="current">0:00</span> / <span id="total">0:00</span>
+                </div>
+            </div>
+            
+            <!-- Bottom row: Volume and control buttons -->
+            <div class="buttons-row">
+                <div class="volume-container">
+                    <span>🔊</span>
+                    <input type="range" id="volume" min="0" max="1" step="0.1" value="1">
+                </div>
+                
+                <div class="control-buttons">
+                    <button id="fullscreenBtn" class="control-btn fullscreen-btn">
+                        <span>⛶</span> Full
+                    </button>
+                    <button id="downloadBtn" class="control-btn download-btn">
+                        <span>⬇</span> Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const video = document.getElementById('videoElement');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const progress = document.getElementById('progress');
+        const currentTime = document.getElementById('current');
+        const totalTime = document.getElementById('total');
+        const volumeSlider = document.getElementById('volume');
+        const videoProtection = document.getElementById('videoProtection');
+        
+        // Single ad URL
+        const adUrl = "https://otieu.com/4/7512585";
+        let adShown = false;
+        
+        // ========== VIDEO PROTECTION ==========
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // ========== PLAYER FUNCTIONALITY ==========
+        
+        function togglePlayPause() {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.innerHTML = '<span>⏸</span> Pause';
+                
+                if (!adShown) {
+                    setTimeout(() => {
+                        const adWindow = window.open(adUrl, '_blank');
+                        if (!adWindow) console.log("Ad blocked");
+                    }, 500);
+                    adShown = true;
+                }
+            } else {
+                video.pause();
+                playPauseBtn.innerHTML = '<span>▶</span> Play';
+            }
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        function updateProgress() {
+            if (video.duration) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progress.style.width = `${percent}%`;
+                currentTime.textContent = formatTime(video.currentTime);
+            }
+        }
+        
+        function setDuration() {
+            if (video.duration) {
+                totalTime.textContent = formatTime(video.duration);
+            }
+        }
+        
+        // Event Listeners
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                togglePlayPause();
+            }
+        });
+        
+        fullscreenBtn.addEventListener('click', () => {
+            const container = document.querySelector('.player-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        
+        downloadBtn.addEventListener('click', () => {
+            const downloadUrl = "https://safefile.cc/Container/4KGZMRM8G6.html";
+            const downloadWindow = window.open(downloadUrl, '_blank');
+            if (!downloadWindow) alert("Please allow pop-ups.");
+        });
+        
+        volumeSlider.addEventListener('input', () => {
+            video.volume = volumeSlider.value;
+        });
+        
+        videoProtection.addEventListener('click', (e) => {
+            const progressBar = document.querySelector('.progress-container');
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            if (pos >= 0 && pos <= 1) video.currentTime = pos * video.duration;
+        });
+        
+        videoProtection.addEventListener('dblclick', togglePlayPause);
+        
+        video.addEventListener('timeupdate', updateProgress);
+        video.addEventListener('loadedmetadata', setDuration);
+        video.addEventListener('ended', () => {
+            playPauseBtn.innerHTML = '<span>▶</span> Play';
+        });
+        
+        // Ensure all buttons are visible
+        function ensureButtonsVisible() {
+            const container = document.querySelector('.player-container');
+            const controls = document.querySelector('.controls');
+            const buttonsRow = document.querySelector('.buttons-row');
+            
+            // Calculate available space
+            const controlsWidth = controls.offsetWidth;
+            const buttonsRowWidth = buttonsRow.offsetWidth;
+            
+            console.log(`Controls width: ${controlsWidth}px, Buttons row width: ${buttonsRowWidth}px`);
+            
+            // If buttons are getting squeezed, adjust layout
+            if (controlsWidth < 350) {
+                // For very small screens, use more compact layout
+                document.querySelector('.volume-container').style.minWidth = '70px';
+                document.querySelector('.volume-container input').style.width = '50px';
+                document.querySelectorAll('.control-btn').forEach(btn => {
+                    btn.style.minWidth = '50px';
+                    btn.style.padding = '4px 6px';
+                    btn.style.fontSize = '10px';
+                });
+                document.querySelector('.download-btn').style.minWidth = '60px';
+            }
+        }
+        
+        // Initialize
+        setTimeout(ensureButtonsVisible, 100);
+        window.addEventListener('resize', ensureButtonsVisible);
+        
+        console.log("Video player loaded - All buttons visible on mobile");
+    </script>
+</body>
+</html>
