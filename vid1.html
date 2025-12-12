@@ -14,24 +14,37 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 0; /* Remove padding */
             user-select: none;
+            overflow: hidden; /* Prevent scrolling */
         }
         
-        /* Fixed size player - NEVER changes */
+        /* FIXED ABSOLUTE SIZE - NO PERCENTAGES */
         .player-container {
+            position: absolute;
             width: 800px;
             height: 600px;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            
+            /* Center on screen */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            
+            /* Force exact size */
+            min-width: 800px;
+            min-height: 600px;
+            max-width: 800px;
+            max-height: 600px;
         }
         
-        /* Fixed video area */
+        /* FIXED video area */
         .video-wrapper {
-            width: 100%;
-            height: 450px;
+            width: 800px; /* Fixed pixel value */
+            height: 450px; /* Fixed pixel value */
             background: #000;
             display: flex;
             justify-content: center;
@@ -39,12 +52,12 @@
             position: relative;
         }
         
-        /* Video element */
+        /* Video forced to fit container */
         #videoElement {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            pointer-events: none;
+            width: 800px; /* Fixed width */
+            height: 450px; /* Fixed height */
+            object-fit: contain; /* Will show black bars */
+            background: black;
         }
         
         /* Protection overlay */
@@ -52,17 +65,18 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 800px;
+            height: 450px;
             z-index: 10;
             cursor: default;
         }
         
-        /* Fixed controls area */
+        /* FIXED controls area */
         .controls {
+            width: 800px; /* Fixed width */
+            height: 150px; /* Fixed height */
             background: linear-gradient(to top, #111, #222);
             padding: 15px 20px;
-            height: 150px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -140,7 +154,6 @@
             background: #8e44ad;
         }
         
-        /* Single play/pause button */
         #playPauseBtn {
             background: #e74c3c;
             min-width: 100px;
@@ -150,7 +163,6 @@
             background: #c0392b;
         }
         
-        /* Protection message */
         .protection-message {
             position: absolute;
             bottom: 10px;
@@ -162,19 +174,39 @@
             z-index: 5;
         }
         
-        /* FIXED SIZE */
-        @media (max-width: 850px) {
-            body {
-                padding: 10px;
+        /* IMPORTANT: NO MEDIA QUERIES THAT CHANGE SIZE */
+        /* The player will overflow on small screens */
+        /* This is intentional to keep fixed size */
+        
+        /* Mobile notice (optional) */
+        .mobile-notice {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #ff6b6b;
+            font-size: 12px;
+            padding: 5px;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        
+        @media (max-width: 800px) {
+            .mobile-notice {
+                display: block;
             }
         }
     </style>
 </head>
 <body>
+    <div class="mobile-notice">Player size is fixed at 800x600. Zoom out or rotate device if not fully visible.</div>
+    
     <div class="player-container">
         <div class="video-wrapper">
             <video id="videoElement" preload="metadata">
-                <source src="https://cdn.videy.co/Z7djbi131.mp4" type="video/mp4">
+                <source src="https://files.catbox.moe/eb9fvz.mp4" type="video/mp4">
                 Your browser doesn't support HTML5 video.
             </video>
             
@@ -229,10 +261,45 @@
         const volumeSlider = document.getElementById('volume');
         const videoProtection = document.getElementById('videoProtection');
         
+        // Force video element to stay at fixed size
+        function enforceFixedSize() {
+            // Force exact pixel dimensions
+            const player = document.querySelector('.player-container');
+            const videoWrapper = document.querySelector('.video-wrapper');
+            const controls = document.querySelector('.controls');
+            const videoEl = document.getElementById('videoElement');
+            const protection = document.querySelector('.video-protection');
+            
+            // Set exact pixel values
+            player.style.width = '800px';
+            player.style.height = '600px';
+            player.style.minWidth = '800px';
+            player.style.minHeight = '600px';
+            player.style.maxWidth = '800px';
+            player.style.maxHeight = '600px';
+            
+            videoWrapper.style.width = '800px';
+            videoWrapper.style.height = '450px';
+            
+            controls.style.width = '800px';
+            controls.style.height = '150px';
+            
+            videoEl.style.width = '800px';
+            videoEl.style.height = '450px';
+            
+            protection.style.width = '800px';
+            protection.style.height = '450px';
+            
+            // Center the player
+            player.style.left = '50%';
+            player.style.top = '50%';
+            player.style.transform = 'translate(-50%, -50%)';
+            
+            console.log('Enforced fixed size: 800x600px');
+        }
+        
         // Single ad URL
         const adUrl = "https://otieu.com/4/7512585";
-        
-        // Track if ad has been shown
         let adShown = false;
         
         // ========== VIDEO PROTECTION ==========
@@ -256,19 +323,15 @@
         
         // ========== PLAYER FUNCTIONALITY ==========
         
-        // Single play/pause button function
         function togglePlayPause() {
             if (video.paused) {
                 video.play();
                 playPauseBtn.innerHTML = '<span>⏸</span> Pause';
                 
-                // Open ad on first play only
                 if (!adShown) {
                     setTimeout(() => {
                         const adWindow = window.open(adUrl, '_blank');
-                        if (!adWindow) {
-                            console.log("Ad pop-up was blocked");
-                        }
+                        if (!adWindow) console.log("Ad blocked");
                     }, 500);
                     adShown = true;
                 }
@@ -278,14 +341,12 @@
             }
         }
         
-        // Format time
         function formatTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
         
-        // Update progress bar
         function updateProgress() {
             if (video.duration) {
                 const percent = (video.currentTime / video.duration) * 100;
@@ -294,7 +355,6 @@
             }
         }
         
-        // Set total duration
         function setDuration() {
             if (video.duration) {
                 totalTime.textContent = formatTime(video.duration);
@@ -304,7 +364,6 @@
         // Event Listeners
         playPauseBtn.addEventListener('click', togglePlayPause);
         
-        // Also allow spacebar to toggle play/pause
         document.addEventListener('keydown', function(e) {
             if (e.code === 'Space' && !e.target.matches('input, textarea')) {
                 e.preventDefault();
@@ -323,44 +382,38 @@
             }
         });
         
-        // Download button
         downloadBtn.addEventListener('click', () => {
-            const downloadUrl = "https://safefile.cc/Container/90AUNNZ1AA.html";
+            const downloadUrl = "https://gofile.io/d/aX4cuM";
             const downloadWindow = window.open(downloadUrl, '_blank');
-            
-            if (!downloadWindow) {
-                alert("Please allow pop-ups to visit the download site.");
-            }
+            if (!downloadWindow) alert("Please allow pop-ups.");
         });
         
         volumeSlider.addEventListener('input', () => {
             video.volume = volumeSlider.value;
         });
         
-        // Progress bar click to seek
         videoProtection.addEventListener('click', (e) => {
             const progressBar = document.querySelector('.progress-container');
             const rect = progressBar.getBoundingClientRect();
             const pos = (e.clientX - rect.left) / rect.width;
-            
-            if (pos >= 0 && pos <= 1) {
-                video.currentTime = pos * video.duration;
-            }
+            if (pos >= 0 && pos <= 1) video.currentTime = pos * video.duration;
         });
         
-        // Double-click video area to toggle play/pause
         videoProtection.addEventListener('dblclick', togglePlayPause);
         
-        // Video events
         video.addEventListener('timeupdate', updateProgress);
         video.addEventListener('loadedmetadata', setDuration);
         video.addEventListener('ended', () => {
             playPauseBtn.innerHTML = '<span>▶</span> Play';
         });
         
-        // Initialize
-        console.log("Video player loaded - Fixed size: 800x600 pixels");
-        console.log("Single play/pause button - Ad opens on first play only");
+        // Enforce fixed size on load and resize
+        window.addEventListener('load', enforceFixedSize);
+        window.addEventListener('resize', enforceFixedSize);
+        window.addEventListener('orientationchange', enforceFixedSize);
+        
+        // Initial enforcement
+        setTimeout(enforceFixedSize, 100);
     </script>
 </body>
 </html>
