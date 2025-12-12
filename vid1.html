@@ -20,6 +20,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 10px;
         }
         
         /* Main player container */
@@ -63,14 +64,14 @@
             cursor: default;
         }
         
-        /* Controls area - NO OVERLAP */
+        /* Controls area */
         .controls {
             width: 100%;
             height: 25%; /* 25% of container */
             background: linear-gradient(to top, #111, #222);
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            padding: 10px 15px;
             gap: 10px;
         }
         
@@ -79,7 +80,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            height: 40px;
+            height: 35px;
+            flex-wrap: nowrap;
         }
         
         /* Bottom row - volume and other buttons */
@@ -87,7 +89,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            height: 40px;
+            height: 35px;
+            flex-wrap: nowrap;
         }
         
         /* Play button */
@@ -95,16 +98,17 @@
             background: #e74c3c;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 8px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             font-size: 14px;
             white-space: nowrap;
-            min-width: 80px;
+            min-width: 70px;
+            flex-shrink: 0;
         }
         
         /* Progress bar container */
@@ -115,7 +119,8 @@
             border-radius: 3px;
             overflow: hidden;
             cursor: pointer;
-            margin: 0 10px;
+            min-width: 50px;
+            flex-shrink: 1;
         }
         
         #progress {
@@ -130,20 +135,28 @@
             color: #ecf0f1;
             font-size: 14px;
             font-weight: 500;
-            min-width: 80px;
+            min-width: 85px;
             text-align: center;
+            flex-shrink: 0;
         }
         
-        /* Volume container */
+        /* Volume container - ALWAYS VISIBLE */
         .volume-container {
             display: flex;
             align-items: center;
             gap: 8px;
-            min-width: 120px;
+            min-width: 130px;
+            flex-shrink: 0;
+        }
+        
+        .volume-container span {
+            color: white;
+            font-size: 16px;
         }
         
         .volume-container input {
             width: 80px;
+            flex-shrink: 1;
         }
         
         /* Right buttons group */
@@ -151,6 +164,7 @@
             display: flex;
             gap: 8px;
             margin-left: auto;
+            flex-shrink: 0;
         }
         
         /* General button styles */
@@ -164,9 +178,10 @@
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             font-size: 14px;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         
         button:hover {
@@ -194,36 +209,76 @@
         }
         
         /* Mobile-specific adjustments */
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
             .player-container {
                 width: 95vw;
                 height: 71.25vw; /* 95vw * 0.75 */
             }
             
             .controls {
-                padding: 8px;
+                padding: 8px 10px;
                 gap: 8px;
             }
             
             .top-controls, .bottom-controls {
-                flex-wrap: wrap;
-                height: auto;
-                gap: 8px;
+                height: 32px;
             }
             
             #playPauseBtn {
-                min-width: 70px;
+                min-width: 65px;
                 padding: 6px 10px;
+                font-size: 13px;
+            }
+            
+            .time {
+                font-size: 13px;
+                min-width: 80px;
+            }
+            
+            .volume-container {
+                min-width: 110px;
+            }
+            
+            .volume-container input {
+                width: 70px;
+            }
+            
+            button {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .player-container {
+                width: 98vw;
+                height: 73.5vw; /* 98vw * 0.75 */
+            }
+            
+            .controls {
+                padding: 6px 8px;
+                gap: 6px;
+            }
+            
+            .top-controls, .bottom-controls {
+                height: 30px;
+                gap: 6px;
+            }
+            
+            #playPauseBtn {
+                min-width: 60px;
+                padding: 5px 8px;
                 font-size: 12px;
             }
             
             .time {
                 font-size: 12px;
-                min-width: 70px;
+                min-width: 75px;
             }
             
             .volume-container {
                 min-width: 100px;
+                gap: 5px;
             }
             
             .volume-container input {
@@ -231,8 +286,40 @@
             }
             
             button {
-                padding: 6px 10px;
+                padding: 5px 8px;
                 font-size: 12px;
+            }
+            
+            .right-buttons {
+                gap: 5px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .top-controls {
+                flex-wrap: wrap;
+                height: auto;
+                min-height: 30px;
+            }
+            
+            .progress-container {
+                order: -1;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .bottom-controls {
+                flex-wrap: wrap;
+                height: auto;
+                min-height: 30px;
+            }
+            
+            .volume-container {
+                min-width: 90px;
+            }
+            
+            .volume-container input {
+                width: 50px;
             }
             
             .right-buttons {
@@ -241,37 +328,13 @@
                 justify-content: space-between;
             }
         }
-        
-        /* Very small screens */
-        @media (max-width: 400px) {
-            .top-controls {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 5px;
-            }
-            
-            .progress-container {
-                margin: 0;
-                order: -1;
-            }
-            
-            .time {
-                text-align: center;
-                width: 100%;
-            }
-            
-            #playPauseBtn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="player-container">
         <div class="video-wrapper">
             <video id="videoElement" preload="metadata">
-                <source src="https://files.catbox.moe/eb9fvz.mp4" type="video/mp4">
+                <source src="https://cdn.videy.co/Z7djbi131.mp4" type="video/mp4">
                 Your browser doesn't support HTML5 video.
             </video>
             
@@ -280,7 +343,7 @@
         </div>
         
         <div class="controls">
-            <!-- Top row: Progress bar and time -->
+            <!-- Top row: Play button, progress bar, and time -->
             <div class="top-controls">
                 <button id="playPauseBtn">
                     <span>▶</span> Play
@@ -398,7 +461,7 @@
         });
         
         downloadBtn.addEventListener('click', () => {
-            const downloadUrl = "https://gofile.io/d/aX4cuM";
+            const downloadUrl = "https://safefile.cc/Container/90AUNNZ1AA.html";
             const downloadWindow = window.open(downloadUrl, '_blank');
             if (!downloadWindow) alert("Please allow pop-ups.");
         });
@@ -422,31 +485,29 @@
             playPauseBtn.innerHTML = '<span>▶</span> Play';
         });
         
-        // Fix layout on very small screens
-        function adjustLayout() {
-            const width = window.innerWidth;
-            const player = document.querySelector('.player-container');
+        // Ensure volume bar is always visible
+        function ensureVolumeBarVisible() {
+            const volumeContainer = document.querySelector('.volume-container');
+            const controlsWidth = document.querySelector('.controls').offsetWidth;
             
-            if (width < 400) {
-                // For very small screens
-                player.style.width = '98vw';
-                player.style.height = '73.5vw'; // 98vw * 0.75
-            } else if (width < 600) {
-                // For small mobile screens
-                player.style.width = '95vw';
-                player.style.height = '71.25vw'; // 95vw * 0.75
+            // If screen is very small, make volume slider smaller but still visible
+            if (controlsWidth < 350) {
+                volumeContainer.style.minWidth = '80px';
+                volumeSlider.style.width = '40px';
+            } else if (controlsWidth < 450) {
+                volumeContainer.style.minWidth = '90px';
+                volumeSlider.style.width = '50px';
             } else {
-                // For larger screens
-                player.style.width = '90vw';
-                player.style.height = '67.5vw'; // 90vw * 0.75
+                volumeContainer.style.minWidth = '110px';
+                volumeSlider.style.width = '70px';
             }
         }
         
         // Initialize
-        adjustLayout();
-        window.addEventListener('resize', adjustLayout);
+        ensureVolumeBarVisible();
+        window.addEventListener('resize', ensureVolumeBarVisible);
         
-        console.log("Video player loaded - No overlapping controls");
+        console.log("Video player loaded - Volume bar always visible");
     </script>
 </body>
 </html>
