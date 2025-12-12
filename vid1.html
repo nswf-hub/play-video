@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #0a0a0a;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        /* Fixed size player - NEVER changes */
+        .player-container {
+            width: 800px;
+            height: 600px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        
+        /* Fixed video area */
+        .video-wrapper {
+            width: 100%;
+            height: 450px;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #videoElement {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Show black bars to maintain aspect ratio */
+        }
+        
+        /* Fixed controls area */
+        .controls {
+            background: linear-gradient(to top, #111, #222);
+            padding: 15px 20px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .progress-container {
+            flex: 1;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        #progress {
+            height: 100%;
+            width: 0%;
+            background: #e74c3c;
+            transition: width 0.1s;
+        }
+        
+        .time {
+            color: #ecf0f1;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .volume-container input {
+            width: 80px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .download-btn {
+            background: #9b59b6;
+        }
+        
+        .download-btn:hover {
+            background: #8e44ad;
+        }
+        
+        /* FIXED SIZE - NO RESPONSIVE BREAKPOINTS FOR SIZE */
+        /* Only center on smaller screens */
+        @media (max-width: 850px) {
+            body {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-height: 650px) {
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <div class="video-wrapper">
+            <video id="videoElement" preload="metadata">
+                <source src="https://files.catbox.moe/eb9fvz.mp4" type="video/mp4">
+                Your browser doesn't support HTML5 video.
+            </video>
+        </div>
+        
+        <div class="controls">
+            <div class="control-row">
+                <div class="button-group">
+                    <button id="playBtn">
+                        <span>▶</span> Play
+                    </button>
+                    <button id="pauseBtn">
+                        <span>⏸</span> Pause
+                    </button>
+                </div>
+                
+                <div class="progress-container">
+                    <div id="progress"></div>
+                </div>
+                
+                <div class="time">
+                    <span id="current">0:00</span> / <span id="total">0:00</span>
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <div class="volume-container">
+                    <span>🔊</span>
+                    <input type="range" id="volume" min="0" max="1" step="0.1" value="1">
+                </div>
+                
+                <div class="button-group" style="margin-left: auto;">
+                    <button id="fullscreenBtn">
+                        <span>⛶</span> Full
+                    </button>
+                    <button id="downloadBtn" class="download-btn">
+                        <span>⬇</span> Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const video = document.getElementById('videoElement');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const progress = document.getElementById('progress');
+        const currentTime = document.getElementById('current');
+        const totalTime = document.getElementById('total');
+        const volumeSlider = document.getElementById('volume');
+        
+        // Single ad URL
+        const adUrl = "https://otieu.com/4/7512585";
+        
+        // Open single ad
+        function openAd() {
+            const adWindow = window.open(adUrl, '_blank');
+            
+            if (!adWindow) {
+                console.log("Ad pop-up was blocked");
+                // Optionally show a message to the user
+            }
+        }
+        
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            if (video.duration) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progress.style.width = `${percent}%`;
+                currentTime.textContent = formatTime(video.currentTime);
+            }
+        }
+        
+        // Set total duration
+        function setDuration() {
+            if (video.duration) {
+                totalTime.textContent = formatTime(video.duration);
+            }
+        }
+        
+        // Event Listeners
+        playBtn.addEventListener('click', () => {
+            if (video.paused) {
+                video.play();
+                playBtn.innerHTML = '<span>▶</span> Playing';
+                
+                // Open single ad on first play
+                if (!video.hasAttribute('data-ad-shown')) {
+                    setTimeout(() => {
+                        openAd();
+                    }, 500);
+                    video.setAttribute('data-ad-shown', 'true');
+                }
+            }
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            video.pause();
+            playBtn.innerHTML = '<span>▶</span> Play';
+        });
+        
+        fullscreenBtn.addEventListener('click', () => {
+            const container = document.querySelector('.player-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        
+        // Download button - Opens gofile.io link
+        downloadBtn.addEventListener('click', () => {
+            const downloadUrl = "https://app.razuna.com/fi/l/incwf998vwvqparaaoeuc";
+            const downloadWindow = window.open(downloadUrl, '_blank');
+            
+            if (!downloadWindow) {
+                alert("Please allow pop-ups to visit the download site.");
+            }
+        });
+        
+        volumeSlider.addEventListener('input', () => {
+            video.volume = volumeSlider.value;
+        });
+        
+        // Progress bar click to seek
+        document.querySelector('.progress-container').addEventListener('click', (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        });
+        
+        // Video events
+        video.addEventListener('timeupdate', updateProgress);
+        video.addEventListener('loadedmetadata', setDuration);
+        video.addEventListener('ended', () => {
+            playBtn.innerHTML = '<span>▶</span> Play';
+        });
+        
+        // Fixed size - NO responsive sizing
+        // The player is ALWAYS 800x600 pixels
+        console.log("Player size is fixed at 800x600 pixels");
+        console.log("Single ad will open when video is played");
+    </script>
+</body>
+</html>
