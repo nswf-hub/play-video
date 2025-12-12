@@ -15,6 +15,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            user-select: none;
         }
         
         /* Fixed size player - NEVER changes */
@@ -38,10 +39,23 @@
             position: relative;
         }
         
+        /* Video element */
         #videoElement {
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain; /* Show black bars to maintain aspect ratio */
+            object-fit: contain;
+            pointer-events: none;
+        }
+        
+        /* Protection overlay */
+        .video-protection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            cursor: default;
         }
         
         /* Fixed controls area */
@@ -126,15 +140,30 @@
             background: #8e44ad;
         }
         
-        /* FIXED SIZE - NO RESPONSIVE BREAKPOINTS FOR SIZE */
-        /* Only center on smaller screens */
-        @media (max-width: 850px) {
-            body {
-                padding: 10px;
-            }
+        /* Single play/pause button */
+        #playPauseBtn {
+            background: #e74c3c;
+            min-width: 100px;
         }
         
-        @media (max-height: 650px) {
+        #playPauseBtn:hover {
+            background: #c0392b;
+        }
+        
+        /* Protection message */
+        .protection-message {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            z-index: 5;
+        }
+        
+        /* FIXED SIZE */
+        @media (max-width: 850px) {
             body {
                 padding: 10px;
             }
@@ -145,19 +174,19 @@
     <div class="player-container">
         <div class="video-wrapper">
             <video id="videoElement" preload="metadata">
-                <source src="https://files.catbox.moe/eb9fvz.mp4" type="video/mp4">
+                <source src="https://cdn.videy.co/Z7djbi131.mp4" type="video/mp4">
                 Your browser doesn't support HTML5 video.
             </video>
+            
+            <div class="video-protection" id="videoProtection"></div>
+            <div class="protection-message">Right-click and video saving disabled</div>
         </div>
         
         <div class="controls">
             <div class="control-row">
                 <div class="button-group">
-                    <button id="playBtn">
+                    <button id="playPauseBtn">
                         <span>▶</span> Play
-                    </button>
-                    <button id="pauseBtn">
-                        <span>⏸</span> Pause
                     </button>
                 </div>
                 
@@ -191,25 +220,61 @@
     <script>
         // Elements
         const video = document.getElementById('videoElement');
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const progress = document.getElementById('progress');
         const currentTime = document.getElementById('current');
         const totalTime = document.getElementById('total');
         const volumeSlider = document.getElementById('volume');
+        const videoProtection = document.getElementById('videoProtection');
         
         // Single ad URL
         const adUrl = "https://otieu.com/4/7512585";
         
-        // Open single ad
-        function openAd() {
-            const adWindow = window.open(adUrl, '_blank');
-            
-            if (!adWindow) {
-                console.log("Ad pop-up was blocked");
-                // Optionally show a message to the user
+        // Track if ad has been shown
+        let adShown = false;
+        
+        // ========== VIDEO PROTECTION ==========
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.keyCode === 123 ||
+                (e.ctrlKey && e.keyCode === 83) ||
+                (e.ctrlKey && e.shiftKey && e.keyCode === 83) ||
+                (e.ctrlKey && e.keyCode === 85) ||
+                (e.ctrlKey && e.shiftKey && e.keyCode === 73)
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // ========== PLAYER FUNCTIONALITY ==========
+        
+        // Single play/pause button function
+        function togglePlayPause() {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.innerHTML = '<span>⏸</span> Pause';
+                
+                // Open ad on first play only
+                if (!adShown) {
+                    setTimeout(() => {
+                        const adWindow = window.open(adUrl, '_blank');
+                        if (!adWindow) {
+                            console.log("Ad pop-up was blocked");
+                        }
+                    }, 500);
+                    adShown = true;
+                }
+            } else {
+                video.pause();
+                playPauseBtn.innerHTML = '<span>▶</span> Play';
             }
         }
         
@@ -237,24 +302,14 @@
         }
         
         // Event Listeners
-        playBtn.addEventListener('click', () => {
-            if (video.paused) {
-                video.play();
-                playBtn.innerHTML = '<span>▶</span> Playing';
-                
-                // Open single ad on first play
-                if (!video.hasAttribute('data-ad-shown')) {
-                    setTimeout(() => {
-                        openAd();
-                    }, 500);
-                    video.setAttribute('data-ad-shown', 'true');
-                }
-            }
-        });
+        playPauseBtn.addEventListener('click', togglePlayPause);
         
-        pauseBtn.addEventListener('click', () => {
-            video.pause();
-            playBtn.innerHTML = '<span>▶</span> Play';
+        // Also allow spacebar to toggle play/pause
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                togglePlayPause();
+            }
         });
         
         fullscreenBtn.addEventListener('click', () => {
@@ -268,9 +323,9 @@
             }
         });
         
-        // Download button - Opens gofile.io link
+        // Download button
         downloadBtn.addEventListener('click', () => {
-            const downloadUrl = "https://app.razuna.com/fi/l/incwf998vwvqparaaoeuc";
+            const downloadUrl = "https://safefile.cc/Container/90AUNNZ1AA.html";
             const downloadWindow = window.open(downloadUrl, '_blank');
             
             if (!downloadWindow) {
@@ -283,23 +338,29 @@
         });
         
         // Progress bar click to seek
-        document.querySelector('.progress-container').addEventListener('click', (e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
+        videoProtection.addEventListener('click', (e) => {
+            const progressBar = document.querySelector('.progress-container');
+            const rect = progressBar.getBoundingClientRect();
             const pos = (e.clientX - rect.left) / rect.width;
-            video.currentTime = pos * video.duration;
+            
+            if (pos >= 0 && pos <= 1) {
+                video.currentTime = pos * video.duration;
+            }
         });
+        
+        // Double-click video area to toggle play/pause
+        videoProtection.addEventListener('dblclick', togglePlayPause);
         
         // Video events
         video.addEventListener('timeupdate', updateProgress);
         video.addEventListener('loadedmetadata', setDuration);
         video.addEventListener('ended', () => {
-            playBtn.innerHTML = '<span>▶</span> Play';
+            playPauseBtn.innerHTML = '<span>▶</span> Play';
         });
         
-        // Fixed size - NO responsive sizing
-        // The player is ALWAYS 800x600 pixels
-        console.log("Player size is fixed at 800x600 pixels");
-        console.log("Single ad will open when video is played");
+        // Initialize
+        console.log("Video player loaded - Fixed size: 800x600 pixels");
+        console.log("Single play/pause button - Ad opens on first play only");
     </script>
 </body>
 </html>
