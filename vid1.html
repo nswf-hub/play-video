@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Video Player</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -10,41 +10,39 @@
         body {
             background: #0a0a0a;
             font-family: Arial, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0; /* Remove padding */
+            height: 100vh;
+            width: 100vw;
             user-select: none;
-            overflow: hidden; /* Prevent scrolling */
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
         
-        /* FIXED ABSOLUTE SIZE - NO PERCENTAGES */
+        /* FIXED container that scales but maintains aspect ratio */
         .player-container {
             position: absolute;
-            width: 800px;
-            height: 600px;
+            width: 80vw; /* Use viewport width for scaling */
+            height: 60vw; /* Maintain 4:3 aspect ratio (800:600 = 4:3) */
+            max-width: 800px;
+            max-height: 600px;
+            min-width: 320px;
+            min-height: 240px;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
             
-            /* Center on screen */
+            /* Center */
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            
-            /* Force exact size */
-            min-width: 800px;
-            min-height: 600px;
-            max-width: 800px;
-            max-height: 600px;
         }
         
-        /* FIXED video area */
+        /* Video area - 75% of container height (450/600 = 0.75) */
         .video-wrapper {
-            width: 800px; /* Fixed pixel value */
-            height: 450px; /* Fixed pixel value */
+            width: 100%;
+            height: 75%; /* 75% of container height */
             background: #000;
             display: flex;
             justify-content: center;
@@ -52,11 +50,11 @@
             position: relative;
         }
         
-        /* Video forced to fit container */
+        /* Video fills the video wrapper */
         #videoElement {
-            width: 800px; /* Fixed width */
-            height: 450px; /* Fixed height */
-            object-fit: contain; /* Will show black bars */
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Show black bars if needed */
             background: black;
         }
         
@@ -65,27 +63,28 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 800px;
-            height: 450px;
+            width: 100%;
+            height: 100%;
             z-index: 10;
             cursor: default;
         }
         
-        /* FIXED controls area */
+        /* Controls area - 25% of container height (150/600 = 0.25) */
         .controls {
-            width: 800px; /* Fixed width */
-            height: 150px; /* Fixed height */
+            width: 100%;
+            height: 25%; /* 25% of container height */
             background: linear-gradient(to top, #111, #222);
-            padding: 15px 20px;
+            padding: 2.5%; /* Responsive padding */
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 2%;
         }
         
         .control-row {
             display: flex;
-            gap: 15px;
+            gap: 3%;
             align-items: center;
+            height: 48%;
         }
         
         .progress-container {
@@ -140,6 +139,7 @@
             align-items: center;
             gap: 6px;
             font-size: 14px;
+            white-space: nowrap;
         }
         
         button:hover {
@@ -165,44 +165,46 @@
         
         .protection-message {
             position: absolute;
-            bottom: 10px;
+            bottom: 5px;
             left: 0;
             width: 100%;
             text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 10px;
             z-index: 5;
         }
         
-        /* IMPORTANT: NO MEDIA QUERIES THAT CHANGE SIZE */
-        /* The player will overflow on small screens */
-        /* This is intentional to keep fixed size */
-        
-        /* Mobile notice (optional) */
-        .mobile-notice {
-            display: none;
-            position: fixed;
-            top: 10px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            color: #ff6b6b;
-            font-size: 12px;
-            padding: 5px;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
+        /* Mobile optimization */
+        @media (max-width: 600px) {
+            .player-container {
+                width: 95vw;
+                height: 71.25vw; /* 95vw * 0.75 = 71.25vw (4:3 ratio) */
+            }
+            
+            button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .time {
+                font-size: 12px;
+                min-width: 70px;
+            }
+            
+            .volume-container input {
+                width: 60px;
+            }
         }
         
-        @media (max-width: 800px) {
-            .mobile-notice {
-                display: block;
+        @media (max-height: 500px) {
+            .player-container {
+                height: 95vh;
+                width: 126.67vh; /* 95vh * 1.333 = 126.67vh (4:3 ratio) */
             }
         }
     </style>
 </head>
 <body>
-    <div class="mobile-notice">Player size is fixed at 800x600. Zoom out or rotate device if not fully visible.</div>
-    
     <div class="player-container">
         <div class="video-wrapper">
             <video id="videoElement" preload="metadata">
@@ -211,7 +213,7 @@
             </video>
             
             <div class="video-protection" id="videoProtection"></div>
-            <div class="protection-message">Right-click and video saving disabled</div>
+            <div class="protection-message">Right-click disabled</div>
         </div>
         
         <div class="controls">
@@ -260,43 +262,6 @@
         const totalTime = document.getElementById('total');
         const volumeSlider = document.getElementById('volume');
         const videoProtection = document.getElementById('videoProtection');
-        
-        // Force video element to stay at fixed size
-        function enforceFixedSize() {
-            // Force exact pixel dimensions
-            const player = document.querySelector('.player-container');
-            const videoWrapper = document.querySelector('.video-wrapper');
-            const controls = document.querySelector('.controls');
-            const videoEl = document.getElementById('videoElement');
-            const protection = document.querySelector('.video-protection');
-            
-            // Set exact pixel values
-            player.style.width = '800px';
-            player.style.height = '600px';
-            player.style.minWidth = '800px';
-            player.style.minHeight = '600px';
-            player.style.maxWidth = '800px';
-            player.style.maxHeight = '600px';
-            
-            videoWrapper.style.width = '800px';
-            videoWrapper.style.height = '450px';
-            
-            controls.style.width = '800px';
-            controls.style.height = '150px';
-            
-            videoEl.style.width = '800px';
-            videoEl.style.height = '450px';
-            
-            protection.style.width = '800px';
-            protection.style.height = '450px';
-            
-            // Center the player
-            player.style.left = '50%';
-            player.style.top = '50%';
-            player.style.transform = 'translate(-50%, -50%)';
-            
-            console.log('Enforced fixed size: 800x600px');
-        }
         
         // Single ad URL
         const adUrl = "https://otieu.com/4/7512585";
@@ -407,13 +372,33 @@
             playPauseBtn.innerHTML = '<span>▶</span> Play';
         });
         
-        // Enforce fixed size on load and resize
-        window.addEventListener('load', enforceFixedSize);
-        window.addEventListener('resize', enforceFixedSize);
-        window.addEventListener('orientationchange', enforceFixedSize);
+        // Force video to maintain fixed aspect ratio
+        function maintainAspectRatio() {
+            const container = document.querySelector('.player-container');
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Always maintain 4:3 aspect ratio (800:600 = 4:3)
+            const targetAspectRatio = 4/3;
+            
+            // Calculate optimal size based on viewport
+            if (viewportWidth / viewportHeight > targetAspectRatio) {
+                // Tall screen - limit by height
+                container.style.height = '90vh';
+                container.style.width = (90 * targetAspectRatio) + 'vh';
+            } else {
+                // Wide screen - limit by width
+                container.style.width = '90vw';
+                container.style.height = (90 / targetAspectRatio) + 'vw';
+            }
+        }
         
-        // Initial enforcement
-        setTimeout(enforceFixedSize, 100);
+        // Initialize
+        maintainAspectRatio();
+        window.addEventListener('resize', maintainAspectRatio);
+        window.addEventListener('orientationchange', maintainAspectRatio);
+        
+        console.log("Video player loaded - Fixed aspect ratio, no zoom needed");
     </script>
 </body>
 </html>
