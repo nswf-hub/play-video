@@ -113,6 +113,7 @@
             cursor: pointer;
             min-width: 40px;
             flex-shrink: 1;
+            position: relative;
         }
         
         #progress {
@@ -367,7 +368,7 @@
                     <span>▶</span> Play
                 </button>
                 
-                <div class="progress-container">
+                <div class="progress-container" id="progressContainer">
                     <div id="progress"></div>
                 </div>
                 
@@ -402,6 +403,7 @@
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const progress = document.getElementById('progress');
+        const progressContainer = document.getElementById('progressContainer');
         const currentTime = document.getElementById('current');
         const totalTime = document.getElementById('total');
         const volumeSlider = document.getElementById('volume');
@@ -410,6 +412,7 @@
         // Single ad URL
         const adUrl = "https://otieu.com/4/7512585";
         let adShown = false;
+        let isSeeking = false;
         
         // ========== VIDEO PROTECTION ==========
         document.addEventListener('contextmenu', function(e) {
@@ -444,7 +447,7 @@
         }
         
         function updateProgress() {
-            if (video.duration) {
+            if (video.duration && !isSeeking) {
                 const percent = (video.currentTime / video.duration) * 100;
                 progress.style.width = `${percent}%`;
                 currentTime.textContent = formatTime(video.currentTime);
@@ -455,6 +458,18 @@
             if (video.duration) {
                 totalTime.textContent = formatTime(video.duration);
             }
+        }
+        
+        // FIXED: Progress bar click handler for seeking
+        function handleProgressClick(e) {
+            const rect = progressContainer.getBoundingClientRect();
+            const clickPosition = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            const seekTime = clickPosition * video.duration;
+            
+            // Update immediately
+            video.currentTime = seekTime;
+            progress.style.width = `${clickPosition * 100}%`;
+            currentTime.textContent = formatTime(seekTime);
         }
         
         // Event Listeners
@@ -488,19 +503,41 @@
             video.volume = volumeSlider.value;
         });
         
-        videoProtection.addEventListener('click', (e) => {
-            const progressBar = document.querySelector('.progress-container');
-            const rect = progressBar.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            if (pos >= 0 && pos <= 1) video.currentTime = pos * video.duration;
+        // FIXED: Progress bar click for seeking (fast forward/rewind)
+        progressContainer.addEventListener('click', handleProgressClick);
+        
+        // Optional: Also allow clicking on video area to seek (if you want this feature)
+        videoProtection.addEventListener('click', function(e) {
+            // Just toggle play/pause on video area click
+            togglePlayPause();
         });
         
-        videoProtection.addEventListener('dblclick', togglePlayPause);
+        // Optional: Double click on video area to toggle fullscreen
+        videoProtection.addEventListener('dblclick', function() {
+            const container = document.querySelector('.player-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
         
+        // Video event listeners
         video.addEventListener('timeupdate', updateProgress);
         video.addEventListener('loadedmetadata', setDuration);
         video.addEventListener('ended', () => {
             playPauseBtn.innerHTML = '<span>▶</span> Play';
+        });
+        
+        // Handle seeking events
+        video.addEventListener('seeking', () => {
+            isSeeking = true;
+        });
+        
+        video.addEventListener('seeked', () => {
+            isSeeking = false;
         });
         
         // Ensure all buttons are visible
@@ -512,8 +549,6 @@
             // Calculate available space
             const controlsWidth = controls.offsetWidth;
             const buttonsRowWidth = buttonsRow.offsetWidth;
-            
-            console.log(`Controls width: ${controlsWidth}px, Buttons row width: ${buttonsRowWidth}px`);
             
             // If buttons are getting squeezed, adjust layout
             if (controlsWidth < 350) {
@@ -530,10 +565,17 @@
         }
         
         // Initialize
-        setTimeout(ensureButtonsVisible, 100);
+        setTimeout(() => {
+            ensureButtonsVisible();
+            // Try to load video metadata if not loaded
+            if (video.readyState < 1) {
+                video.load();
+            }
+        }, 100);
+        
         window.addEventListener('resize', ensureButtonsVisible);
         
-        console.log("Video player loaded - All buttons visible on mobile");
+        console.log("Video player loaded - Progress bar is now clickable");
     </script>
 </body>
 </html>
