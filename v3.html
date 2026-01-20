@@ -93,6 +93,7 @@ body {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.1);
     aspect-ratio: 16/9;
+    position: relative;
 }
 
 video {
@@ -281,7 +282,7 @@ video {
         <div class="video-container" id="videoContainer">
             <!-- Video WITHOUT autoplay - user must click play -->
             <video controls playsinline controlsList="nodownload" id="videoPlayer">
-                <source src="" type="video/mp4">
+                <source src="https://cdn.videy.co/TXs4gdcp1.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <!-- Play Overlay -->
@@ -296,12 +297,12 @@ video {
     <!-- Download Buttons - ORANGE -->
     <div class="download-section" id="downloads">
         <div class="download-buttons">
-            <!-- Download 1: Open ad in NEW TAB, then go to https://shorten.is/qZB9u in MAIN TAB -->
-            <button class="download-btn" onclick="handleDownload1()">
+            <!-- Download 1: Open ad in NEW TAB, then go to download link in MAIN TAB -->
+            <button class="download-btn" onclick="handleDownload('https://otieu.com/4/8236017', 'https://shorten.is/-_tIw')">
                 <i class="fas fa-download"></i> DOWNLOAD 1
             </button>
-            <!-- Download 2: Open ad in NEW TAB, then go to https://shorten.is/trzbM in MAIN TAB -->
-            <button class="download-btn" onclick="handleDownload2()">
+            <!-- Download 2: Open ad in NEW TAB, then go to download link in MAIN TAB -->
+            <button class="download-btn" onclick="handleDownload('https://otieu.com/4/8257975', 'https://shorten.is/0oda4')">
                 <i class="fas fa-download"></i> DOWNLOAD 2
             </button>
         </div>
@@ -384,25 +385,14 @@ video.addEventListener('ended', function() {
     playOverlay.classList.remove('hidden');
 });
 
-// Download 1: Open ad in NEW TAB, then go to download link in MAIN TAB
-function handleDownload1() {
+// Single download function - handles both download buttons
+function handleDownload(adUrl, downloadUrl) {
     // Open ad in NEW TAB
-    window.open("https://otieu.com/4/8236017", "_blank");
+    window.open(adUrl, "_blank");
     
     // After 1 second, redirect MAIN TAB to download link
     setTimeout(() => {
-        window.location.href = "https://shorten.is/-_tIw";
-    }, 1000);
-}
-
-// Download 2: Open ad in NEW TAB, then go to download link in MAIN TAB
-function handleDownload2() {
-    // Open ad in NEW TAB
-    window.open("https://otieu.com/4/8257975", "_blank");
-    
-    // After 1 second, redirect MAIN TAB to download link
-    setTimeout(() => {
-        window.location.href = "https://shorten.is/0oda4";
+        window.location.href = downloadUrl;
     }, 1000);
 }
 </script>
